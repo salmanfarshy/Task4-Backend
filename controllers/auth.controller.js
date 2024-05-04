@@ -63,21 +63,15 @@ export const register = async (req, res) => {
 
     const { userId, name } = newUser;
 
-    return res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 25200000,
-      })
-      .json({
-        message: "User created successfully.",
-        userId,
-        name,
-      });
+    return res.json({
+      message: "User created successfully.",
+      userId,
+      name,
+      token,
+    });
   } catch (err) {
     return res.json({
-      message: "User may exist or check the credentials.",
+      message: "User already exist.",
     });
   }
 };
@@ -126,7 +120,7 @@ export const login = async (req, res) => {
 
     if (!user)
       return res.json({
-        message: "User doesn't exist. Maybe deleted your acoount by someone.",
+        message: "User doesn't exist.",
       });
 
     if (password !== user.password)
@@ -144,14 +138,7 @@ export const login = async (req, res) => {
     const { userId, name } = user;
     if (!user.status) return res.json({ userId: false });
     else {
-      return res
-        .cookie("token", token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-          maxAge: 25200000,
-        })
-        .json({ userId, name, lastLoginTime: formattedDate });
+      return res.json({ userId, name, lastLoginTime: formattedDate, token });
     }
   } catch (err) {
     return res.json({ message: "Failed to login!" });
@@ -159,8 +146,8 @@ export const login = async (req, res) => {
 };
 
 export const checkUser = (req, res) => {
-  const { token } = req.cookies;
-  console.log(req.cookies);
+  const token = req.body.token;
+  console.log(req.body);
 
   if (!token) return res.json({ Id: false });
 
@@ -171,7 +158,7 @@ export const checkUser = (req, res) => {
 };
 
 export const logout = (req, res) => {
-  const { token } = req.cookies;
+  const token = req.body.token;
   console.log(req.body.data);
   jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
     console.log(payload?.userId);
@@ -181,7 +168,7 @@ export const logout = (req, res) => {
     );
   });
 
-  res.clearCookie("token").json({ message: "Logout Successful" });
+  res.json({ message: "Logout Successfully." });
 };
 
 export const users = async (req, res) => {
@@ -190,8 +177,8 @@ export const users = async (req, res) => {
 };
 
 export const deleteUsers = async (req, res) => {
-  const { token } = req.cookies;
-  const ids = req.body;
+  const token = req.body.token;
+  const ids = req.body.ids;
   const idsArray = ids.map((str) => +str);
   let id = 0;
 
@@ -204,15 +191,18 @@ export const deleteUsers = async (req, res) => {
   const result = await User.deleteMany({ userId: { $in: ids } });
 
   if (result.acknowledged && idsArray.includes(id)) {
-    return res.clearCookie("token").json("Deleted users and you successfully.");
+    return res.json(
+      (ids.length === 1 ? "user " : "users ") + "and you Deleted successfully."
+    );
   } else if (result.acknowledged) {
-    return res.json("Deleted users successfully.");
-  } else return res.status(501).json("Something wrong delete failed.");
+    return res.json(
+      (ids.length === 1 ? "user " : "users ") + "Deleted successfully."
+    );
+  } else return res.status(501).json("Something wrong deletion failed.");
 };
 
 export const blockOrUnblockUsers = async (req, res) => {
-  const { token } = req.cookies;
-  const { selectedItems: ids, status } = req.body;
+  const { selectedItems: ids, status, token } = req.body;
   const idsArray = ids.map((str) => +str);
   let id = 0;
   console.log(status);
@@ -225,13 +215,22 @@ export const blockOrUnblockUsers = async (req, res) => {
 
   const result = await User.updateMany({ userId: { $in: ids } }, { status });
 
-  if (result.nModified === 0 && !status) return json("users block failed.");
+  if (result.nModified === 0 && !status)
+    return json((ids.length === 1 ? "user " : "users ") + "block failed.");
   else if (result.nModified === 0 && status)
-    return json("users unblock failed.");
+    return json((ids.length === 1 ? "user " : "users ") + "unblock failed.");
   else {
     if (idsArray.includes(id) && !status)
-      return res.clearCookie("token").json("users and you are blocked.");
-    else if (!status) return res.json("users are blocked.");
-    else return res.json("users are unblocked.");
+      return res
+        .clearCookie("token")
+        .json(
+          (ids.length === 1 ? "user " : "users ") + "and you block failed."
+        );
+    else if (!status)
+      return res.json((ids.length === 1 ? "user " : "users ") + "are blocked.");
+    else
+      return res.json(
+        (ids.length === 1 ? "user " : "users ") + "are unblocked."
+      );
   }
 };

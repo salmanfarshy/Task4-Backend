@@ -19,7 +19,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://task4-client-app.netlify.app",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -42,7 +42,7 @@ mongoose
 
 app.post("/register", register);
 app.post("/login", login);
-app.get("/checkUser", checkUser);
+app.post("/checkUser", checkUser);
 app.post("/logout", logout);
 app.get("/users", users);
 app.delete("/deleteUsers", deleteUsers);
