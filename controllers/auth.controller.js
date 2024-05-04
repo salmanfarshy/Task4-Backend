@@ -190,14 +190,22 @@ export const deleteUsers = async (req, res) => {
   const result = await User.deleteMany({ userId: { $in: ids } });
 
   if (result.acknowledged && idsArray?.includes(id)) {
-    return res.json(
-      (ids?.length === 1 ? "user " : "users ") + "and you Deleted successfully."
-    );
+    return res.json({
+      message:
+        (ids?.length === 1 ? "user " : "users ") +
+        "and you Deleted successfully.",
+      redirect: true,
+    });
   } else if (result.acknowledged) {
-    return res.json(
-      (ids?.length === 1 ? "user " : "users ") + "Deleted successfully."
-    );
-  } else return res.status(501).json("Something wrong deletion failed.");
+    return res.json({
+      message:
+        (ids?.length === 1 ? "user " : "users ") + "Deleted successfully.",
+      redirect: false,
+    });
+  } else
+    return res
+      .status(501)
+      .json({ message: "Something wrong deletion failed.", redirect: false });
 };
 
 export const blockOrUnblockUsers = async (req, res) => {
@@ -213,23 +221,28 @@ export const blockOrUnblockUsers = async (req, res) => {
   const result = await User.updateMany({ userId: { $in: ids } }, { status });
 
   if (result.nModified === 0 && !status)
-    return json((ids.length === 1 ? "user " : "users ") + "block failed.");
+    return json({
+      message: (ids.length === 1 ? "user " : "users ") + "block failed.",
+    });
   else if (result.nModified === 0 && status)
-    return json((ids?.length === 1 ? "user " : "users ") + "unblock failed.");
+    return json({
+      message: (ids?.length === 1 ? "user " : "users ") + "unblock failed.",
+    });
   else {
     if (idsArray?.includes(id) && !status)
-      return res
-        .clearCookie("token")
-        .json(
-          (ids?.length === 1 ? "user " : "users ") + "and you block failed."
-        );
+      return res.json({
+        message: (ids?.length === 1 ? "user " : "users ") + "and you blocked.",
+        redirect: true,
+      });
     else if (!status)
-      return res.json(
-        (ids?.length === 1 ? "user " : "users ") + "are blocked."
-      );
+      return res.json({
+        message: (ids?.length === 1 ? "user " : "users ") + "are blocked.",
+        redirect: false,
+      });
     else
-      return res.json(
-        (ids?.length === 1 ? "user " : "users ") + "are unblocked."
-      );
+      return res.json({
+        message: (ids?.length === 1 ? "user " : "users ") + "are unblocked.",
+        redirect: false,
+      });
   }
 };
