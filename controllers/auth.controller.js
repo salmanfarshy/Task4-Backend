@@ -50,7 +50,7 @@ export const register = async (req, res) => {
     };
 
     const newUser = await User.create(data);
-    console.log(newUser);
+    //console.log(newUser);
 
     const token = jwt.sign(
       {
@@ -147,7 +147,7 @@ export const login = async (req, res) => {
 
 export const checkUser = (req, res) => {
   const token = req.body.token;
-  console.log(req.body);
+  //console.log(req.body);
 
   if (!token) return res.json({ Id: false });
 
@@ -159,9 +159,8 @@ export const checkUser = (req, res) => {
 
 export const logout = (req, res) => {
   const token = req.body.token;
-  console.log(req.body.data);
+  //console.log(req.body.data);
   jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
-    console.log(payload?.userId);
     await User.findOneAndUpdate(
       { userId: payload?.userId },
       { lastLoginTime: req.body.data }
@@ -179,37 +178,35 @@ export const users = async (req, res) => {
 export const deleteUsers = async (req, res) => {
   const token = req.body.token;
   const ids = req.body.ids;
-  const idsArray = ids.map((str) => +str);
+  //console.log(ids);
+
+  const idsArray = ids?.map((str) => +str);
   let id = 0;
 
   jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
-    console.log(ids);
-    console.log(payload?.userId);
     id = payload?.userId;
   });
 
   const result = await User.deleteMany({ userId: { $in: ids } });
 
-  if (result.acknowledged && idsArray.includes(id)) {
+  if (result.acknowledged && idsArray?.includes(id)) {
     return res.json(
-      (ids.length === 1 ? "user " : "users ") + "and you Deleted successfully."
+      (ids?.length === 1 ? "user " : "users ") + "and you Deleted successfully."
     );
   } else if (result.acknowledged) {
     return res.json(
-      (ids.length === 1 ? "user " : "users ") + "Deleted successfully."
+      (ids?.length === 1 ? "user " : "users ") + "Deleted successfully."
     );
   } else return res.status(501).json("Something wrong deletion failed.");
 };
 
 export const blockOrUnblockUsers = async (req, res) => {
   const { ids, status, token } = req.body;
-  const idsArray = ids.map((str) => +str);
+  const idsArray = ids?.map((str) => +str);
   let id = 0;
-  console.log(status);
+  //console.log(status);
 
   jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
-    console.log(ids);
-    console.log(payload?.userId);
     id = payload?.userId;
   });
 
@@ -218,19 +215,21 @@ export const blockOrUnblockUsers = async (req, res) => {
   if (result.nModified === 0 && !status)
     return json((ids.length === 1 ? "user " : "users ") + "block failed.");
   else if (result.nModified === 0 && status)
-    return json((ids.length === 1 ? "user " : "users ") + "unblock failed.");
+    return json((ids?.length === 1 ? "user " : "users ") + "unblock failed.");
   else {
-    if (idsArray.includes(id) && !status)
+    if (idsArray?.includes(id) && !status)
       return res
         .clearCookie("token")
         .json(
-          (ids.length === 1 ? "user " : "users ") + "and you block failed."
+          (ids?.length === 1 ? "user " : "users ") + "and you block failed."
         );
     else if (!status)
-      return res.json((ids.length === 1 ? "user " : "users ") + "are blocked.");
+      return res.json(
+        (ids?.length === 1 ? "user " : "users ") + "are blocked."
+      );
     else
       return res.json(
-        (ids.length === 1 ? "user " : "users ") + "are unblocked."
+        (ids?.length === 1 ? "user " : "users ") + "are unblocked."
       );
   }
 };
