@@ -202,7 +202,7 @@ export const deleteUsers = async (req, res) => {
 };
 
 export const blockOrUnblockUsers = async (req, res) => {
-  const { selectedItems: ids, status, token } = req.body;
+  const { ids, status, token } = req.body;
   const idsArray = ids.map((str) => +str);
   let id = 0;
   console.log(status);
