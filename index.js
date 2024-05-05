@@ -19,7 +19,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://task4-client-app.onrender.com",
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
